@@ -6,10 +6,15 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.io.*;
 import java.net.*;
+import java.util.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
+
+import moe.heing.server.config.CodeConfig;
 import moe.heing.server.config.UrlConfig;
-import moe.heing.server.model.PlayerClient;
+import moe.heing.server.model.MyMsg;
+import moe.heing.server.model.GameMapStr;
 
 public class TcpServer {
     public ServerSocket serverSocket;
@@ -18,8 +23,12 @@ public class TcpServer {
     public int threadCount = 0;
     public ThreadGroup clientThreadGroup;
     public ArrayList<ServerThread> clientThreads = new ArrayList<>();
+    public static GameMapStr gameMapStr;
+    public SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public TcpServer(int port) {
         connectPort = port;
+        long nowTimeLong = System.currentTimeMillis() / 1000;
+        gameMapStr = new GameMapStr(nowTimeLong, "2,3.333002,1.74068,358.1939|1,-11.54934,-2.688283,3.479636|");
         init();
         listen();
     }
@@ -35,9 +44,7 @@ public class TcpServer {
         try {
             while (true) {
                 Socket s = serverSocket.accept();
-                String threadName = (++threadCount) + "";
-                ServerThread aThread = new ServerThread(clientThreadGroup, threadName, s);
-                clientThreads.add(aThread);
+                clientThreads.add(new ServerThread(clientThreadGroup, (++threadCount) + "", s));
                 clientThreads.get(clientThreads.size()-1).start();
 
             }
@@ -46,8 +53,22 @@ public class TcpServer {
         }
     }
     public void sendAll(String msg) {
-        for (ServerThread aThread : clientThreads ) {
-            aThread.sendMsgStr(msg);
+        new Thread(()-> {
+            for (ServerThread aThread : clientThreads) {
+                aThread.sendMsgStr(msg);
+            }
+        }).start();
+    }
+    public void handleMsg(MyMsg mymsg) {
+        if (mymsg.type == CodeConfig.TYPE_UPLOAD_MY_MAP) {
+            long nowTimeLong = System.currentTimeMillis() / 1000;
+            if (nowTimeLong > gameMapStr.timestamp) {
+                gameMapStr.timestamp = nowTimeLong;
+                gameMapStr.mapStr = mymsg.msg;
+                System.out.println("存储game map");
+            }
+        } else if (mymsg.type == CodeConfig.TYPE_NEW_CLIENT) {
+            sendAll(new MyMsg(CodeConfig.SERVER_PLAYER_ID, CodeConfig.TYPE_UPDATE_MAP, gameMapStr.mapStr).toString());
         }
     }
     protected class ServerThread extends Thread {
@@ -63,14 +84,17 @@ public class TcpServer {
             out.flush();
         }
         public void run() {
-            System.out.println("new client");
             try {
                 in = new BufferedReader(new InputStreamReader(s.getInputStream()));
                 out = new PrintWriter(s.getOutputStream());
                 String msg;
                 while (!(msg = in.readLine()).equals("quit")) {
-                    System.out.println("#" + msg);
+                    String nowTimeStr = df.format(new Date());
+                    System.out.println(nowTimeStr + "#\n    " + msg);
                     sendAll(msg);
+                    if (msg.charAt(0) != '{') {
+                        handleMsg(new MyMsg(msg));
+                    }
                 }
                 in.close();
                 out.close();
