@@ -43,25 +43,28 @@ public class TcpServer {
                 Socket s = serverSocket.accept();
                 clientThreads.add(new ServerThread(clientThreadGroup, (++threadCount) + "", s));
                 clientThreads.get(clientThreads.size()-1).start();
-
+                printStatus();
             }
 	    } catch (Exception e) {
             e.printStackTrace();
         }
     }
     public void myRemove(String threadName) {
+        // System.out.println("myRemove(" + threadName);
         new Thread(()->{
             System.out.println(threadName);
             Iterator<ServerThread> it = clientThreads.iterator();
             while (it.hasNext()) {
-                if (it.next().threadName.equals(threadName)) {
+                ServerThread sh = it.next();
+                if (sh.threadName.equals(threadName)) {
                     it.remove();
                     System.out.println("移除threadName=" + threadName);
-                    System.out.println("        ,roomid=" + it.next().roomid);
+                    System.out.println("        ,roomid=" + sh.roomid);
+                    printStatus();
                     break;
                 }
             }
-        });
+        }).start();
     }
     public void sendAll(String roomid, String threadName, String msg) {
         new Thread(()-> {
@@ -71,6 +74,9 @@ public class TcpServer {
                 }
             }
         }).start();
+    }
+    private void printStatus() {
+        System.out.println("    总连接线程数：" + clientThreads.size());
     }
     protected class ServerThread extends Thread {
         Socket s;
@@ -89,6 +95,7 @@ public class TcpServer {
             out.flush();
         }
         public void myclose() {
+            // System.out.println("调用myclose方法");
             try {
                 in.close();
                 out.close();
@@ -106,11 +113,12 @@ public class TcpServer {
                 while (true) {
                     msg = in.readLine();
                     if (msg.equals("quit")) {
+                        System.out.println("收到退出信号");
                         myclose();
                         break;
                     }
                     String nowTimeStr = df.format(new Date());
-                    System.out.println(nowTimeStr + "#\n    " + msg);
+                    System.out.println(nowTimeStr + "#\n    :" + msg);
                     if (roomid == null) {
                         int l = msg.length();
                         StringBuilder sb = new StringBuilder();
