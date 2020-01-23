@@ -10,18 +10,24 @@ public class MyPlayer : MonoBehaviour
     public static GameObject playerGO;
     public static OtherPlayerManager otherPlayerManager;
     public static TcpClient tcpClient;
-    public static GameObject myGameGO; 
+    public static GameObject myGameGO;
+    public static GameObject catGO;
+    public static GameObject fishGO;
+    public static GameObject audioChatGO;
     private void Awake()
     {
         if (playertype == Config.PLAYER_TYPE_CAT)
         {
-            playerGO = GameObject.FindGameObjectWithTag("cat");
+            playerGO = GameObject.FindGameObjectWithTag("cat"); 
         } else if (playertype == Config.PLAYER_TYPE_FISH)
         {
             playerGO = GameObject.FindGameObjectWithTag("fish");
         }
+        catGO = GameObject.FindGameObjectWithTag("cat");
+        fishGO = GameObject.FindGameObjectWithTag("fish");
         otherPlayerManager = GameObject.FindWithTag("OtherPlayerManagerGO").GetComponent<OtherPlayerManager>();
         tcpClient = GameObject.FindGameObjectWithTag("tcpclient").GetComponent<TcpClient>();
+        audioChatGO = GameObject.FindGameObjectWithTag("audiochat");
     }
     // Start is called before the first frame update
     void Start()

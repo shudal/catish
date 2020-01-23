@@ -6,6 +6,7 @@ public class Config : MonoBehaviour
 {
     public const string SERVER_DOMAIN = "https://catishs.heing.fun";
     public const int SERVER_TCP_PORT = 8201;
+    public const int AUDIO_TCP_PROT = 8302;
     public const int PLAYER_TYPE_CAT = 1;
     public const int PLAYER_TYPE_FISH = 2;
 

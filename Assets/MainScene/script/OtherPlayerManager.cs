@@ -9,7 +9,9 @@ public class OtherPlayerManager : MonoBehaviour
 {
 
     public GameObject gameOver;
-    public int uploadGameMapGap = 1; 
+    public int uploadGameMapGap = 1;
+
+    Queue<Audios> audioBytesQueue = new Queue<Audios>();
 
     // 上传所有。用于给新登录者
     public void uploadMapAll()
@@ -76,33 +78,54 @@ public class OtherPlayerManager : MonoBehaviour
         }
     }
     public void updateOthersMap(String s)
-    {
-        GameObject go;
-        if (MyPlayer.playertype == Config.PLAYER_TYPE_CAT)
-        {
-            go = GameObject.FindGameObjectWithTag("fish");
-        } else
-        {
-            go = GameObject.FindGameObjectWithTag("cat");
-        }
+    { 
         int i = 0;
-        StringBuilder SB = new StringBuilder();
-        SB.Clear();
+        StringBuilder SB3 = new StringBuilder();
+        SB3.Clear();
         for (; s[i] != '|'; ++i)
         {
-            SB.Append(s[i]);
-        }
-        float otherX = (float)Convert.ToDouble(SB.ToString());
-        SB.Clear();  
-        for (++i; i < s.Length; ++i)
-        {
-            SB.Append(s[i]);
+            SB3.Append(s[i]);
         } 
-        float otherY = (float)Convert.ToDouble(SB.ToString());
-        Debug.Log("xSB:" + otherX);
-        Debug.Log("ySB:" + otherY); 
-        go.transform.position = new Vector3(otherX, otherY, go.transform.position.z);
+        float otherX = (float)Convert.ToDouble(SB3.ToString());
+        SB3.Clear();  
+        for (++i; i < s.Length && s[i] != '\n'; ++i)
+        {
+            SB3.Append(s[i]);
+        } 
+        float otherY = (float)Convert.ToDouble(SB3.ToString());
+        SB3.Clear(); 
+        if (MyPlayer.playertype == Config.PLAYER_TYPE_CAT)
+        {
+            MyPlayer.fishGO.transform.position = new Vector3(otherX, otherY, MyPlayer.fishGO.transform.position.z);
+        }
+        else
+        { 
+            MyPlayer.catGO.transform.position = new Vector3(otherX, otherY, MyPlayer.catGO.transform.position.z);
+        } 
         
+    }
+    void handleAudio(string auS)
+    {
+        new Thread(() =>
+        {
+            int i = 0;
+            StringBuilder ss1 = new StringBuilder();
+            for (; auS[i] != '|'; ++i)
+            {
+                ss1.Append(auS[i]);
+            }
+            int c = Convert.ToInt32(ss1.ToString());
+            ss1.Clear();
+            for (++i; i < auS.Length; ++i)
+            {
+                ss1.Append(auS[i]);
+            }
+            //byte[] ba = Convert.FromBase64String(ss1.ToString());
+            Debug.Log("ba str:" + ss1.ToString());
+            byte[] ba = Base32.FromBase32String(ss1.ToString());
+            audioBytesQueue.Enqueue(new Audios(ba, c));
+        }).Start();
+       
     }
     public void HandleMsg(MyJson myJson)
     { 
@@ -111,7 +134,13 @@ public class OtherPlayerManager : MonoBehaviour
             return;
         }
         switch (myJson.type)
-        {
+        { 
+            case CodeConfig.UPDATE_OTHERS_MAP:
+                updateOthersMap(myJson.msg);
+                break;
+            case CodeConfig.AUDIO:
+                handleAudio(myJson.msg);
+                break;
             case CodeConfig.MOVE_HOR:
                 if (MyPlayer.playertype == Config.PLAYER_TYPE_CAT)
                 {
@@ -136,9 +165,6 @@ public class OtherPlayerManager : MonoBehaviour
             case CodeConfig.UPDATE_MAP_ALL:
                 updateMapAll(myJson.msg);
                 break;
-            case CodeConfig.UPDATE_OTHERS_MAP:
-                updateOthersMap(myJson.msg);
-                break;
             case CodeConfig.GAME_OVER:
                 GameObject.FindGameObjectWithTag("fish").GetComponent<FishPlayer>().gameOverGO.SetActive(true);
                 break;
@@ -148,6 +174,7 @@ public class OtherPlayerManager : MonoBehaviour
             case CodeConfig.SKILL_FISH:
                 GameObject.FindGameObjectWithTag("fish").GetComponent<FishPlayer>().skill();
                 break;
+            
         } 
         
     }
@@ -162,6 +189,25 @@ public class OtherPlayerManager : MonoBehaviour
 
     // Update is called once per frame
     void Update()
+    {
+        if (audioBytesQueue.Count > 0)
+        {
+            HandleAudiosBytes((audioBytesQueue.Dequeue()));
+        }
+    }
+    void HandleAudiosBytes(Audios a)
     { 
+        MyPlayer.audioChatGO.GetComponent<AudioChat>().playByte(a.audioBytes, a.chan);
+    }
+}
+
+class Audios
+{
+    public byte[] audioBytes;
+    public int chan;
+    public Audios(byte[] ba, int c)
+    {
+        audioBytes = ba;
+        chan = c;
     }
 }

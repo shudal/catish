@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine; 
 public class FishPlayer : MonoBehaviour
 {
     public int horDirection = 0;
@@ -17,6 +17,7 @@ public class FishPlayer : MonoBehaviour
 
     public GameObject bubbleGO;
     public GameObject fishwin;
+     
     public void moveHor(int _direction)
     {
         horDirection = _direction;
@@ -34,10 +35,11 @@ public class FishPlayer : MonoBehaviour
     {
         verDirection = _direction; 
     }
+     
     // Start is called before the first frame update
     void Start()
     {
-        animator = GetComponent<Animator>();
+        animator = GetComponent<Animator>(); 
     }
 
     void animControll()
@@ -65,6 +67,7 @@ public class FishPlayer : MonoBehaviour
 
     void moveControll()
     {
+        // 限制不移出边界
         Vector2 s = new Vector2(transform.position.x, transform.position.y);
 
         bool castDown = Physics2D.Linecast(s, new Vector2(s.x, s.y - myDistance), bottomLayerMask);
@@ -105,7 +108,7 @@ public class FishPlayer : MonoBehaviour
                     transform.Translate(0, verDirection * m_times * Time.deltaTime, 0);
                 }
             }
-        }
+        } 
     }
     // Update is called once per frame
     void Update()

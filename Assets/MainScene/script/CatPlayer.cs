@@ -9,12 +9,7 @@ public class CatPlayer : MonoBehaviour
     private const int m_times = 6;
     public GameObject forkGO;
     public float forkDown = 0.3F;
-
-    /*
-    private int forkCount = 0;
-    private int maxForkCount = 1;
-    private int forkIndex = 1; 
-    */
+     
     public void moveHor(int _direction)
     {
         horDirection = _direction;

@@ -9,8 +9,7 @@ public class Btn : MonoBehaviour
     {
         Debug.Log("ready to load entry scene");
         SceneManager.LoadSceneAsync("Entry");
-        Debug.Log("return to entry");
-        MyPlayer.tcpClient.quitGame();
+        Debug.Log("return to entry"); 
     }
     // Start is called before the first frame update
     void Start()

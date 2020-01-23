@@ -48,9 +48,8 @@ public class TcpClient : MonoBehaviour {
 
             }
         }).Start();
-        
-        
     }
+    
     private void HandleMyJson(MyJson myjson)
     {
         MyPlayer.otherPlayerManager.HandleMsg(myjson);
@@ -64,15 +63,16 @@ public class TcpClient : MonoBehaviour {
                 byte[] buffer = new byte[maxn * maxn];
                 int n = clientSocket.Receive(buffer);
                 if (n > 0)
-                { 
+                {
                     string msg = Encoding.UTF8.GetString(buffer, 0, n);
                     Debug.Log("@" + msg);
                     MyJson myjson = new MyJson(msg);
                     msgs.Enqueue(myjson);
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
-
+                Debug.Log(e.Message);
             }
         }
     }
@@ -106,5 +106,9 @@ public class TcpClient : MonoBehaviour {
         { 
             HandleMyJson((msgs.Dequeue()));
         }
+    }
+    private void OnDestroy()
+    {
+        quitGame();
     }
 }

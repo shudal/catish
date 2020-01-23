@@ -10,6 +10,7 @@ TagManager:
   - gameOver
   - tcpclient
   - OtherPlayerManagerGO
+  - audiochat
   layers:
   - Default
   - TransparentFX

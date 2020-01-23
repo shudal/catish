@@ -15,4 +15,7 @@ public class CodeConfig
     public const int SKILL_FISH = 10;
     public const int GAME_OVER = 8;
     public const int FISH_WIN = 9;
+
+    public const int AUDIO = 11;
+    public const int NEW_AUDIO = 12;
 }
